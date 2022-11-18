@@ -1,23 +1,10 @@
-# DevConnector 2.0
+# DevConnector
 
 > Social network for developers
 
-This is a MERN stack application from the "MERN Stack Front To Back" course on [Udemy](https://www.udemy.com/mern-stack-front-to-back/?couponCode=TRAVERSYMEDIA). It is a small social network app that includes authentication, profiles and forum posts.
+This is a MERN stack application from the "MERN Stack Front To Back" course. It is a small social network app that includes authentication, profiles and forum posts.
 
-# Updates since course published
 
-Such is the nature of software; things change frequently, newer more robust paradigms emerge and packages are continuously evolving.
-Hopefully the below will help you adjust your course code to manage the most notable changes.
-
-The master branch of this repository contains all the changes and updates, so if you're following along with the lectures in the Udemy course and need reference code to compare against please checkout the [origionalcoursecode](https://github.com/bradtraversy/devconnector_2.0/tree/originalcoursecode) branch. Much of the code in this master branch is compatible with course code but be aware that if you adopt some of the changes here, it may require other changes too.
-
-After completing the course you may want to look through this branch and play about with the changes.
-
-## Changes to GitHub API authentication
-
-Since the course was published, GitHub has [deprecated authentication via URL query parameters](https://developer.github.com/changes/2019-11-05-deprecated-passwords-and-authorizations-api/#authenticating-using-query-parameters)
-You can get an access token by following [these instructions](https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line)
-For this app we don't need to add any permissions so don't select any in the _scopes_.
 **DO NOT SHARE ANY TOKENS THAT HAVE PERMISSIONS**
 This would leave your account or repositories vulnerable, depending on permissions set.
 
@@ -80,14 +67,6 @@ const headers = {
 const gitHubResponse = await axios.get(uri, { headers });
 ```
 
-You can see the full change in [routes/api/profile.js](https://github.com/bradtraversy/devconnector_2.0/blob/4be414c6a54994c18397dba9c927ad67b878508b/routes/api/profile.js#L324)
-
-## uuid no longer has a default export
-
-The npm package [uuid](https://www.npmjs.com/package/uuid) no longer has a default export, so in our [client/src/actions/alert.js](https://github.com/bradtraversy/devconnector_2.0/blob/master/client/src/actions/alert.js) we need to change the import and use of this package.
-
-change
-
 ```javascript
 import uuid from 'uuid';
 ```
@@ -113,16 +92,12 @@ const id = uuidv4();
 ## Addition of normalize-url package 🌎
 
 Depending on what a user enters as their website or social links, we may not get a valid clickable url.
-For example a user may enter _**traversymedia.com**_ or _**www.traversymedia.com**_ which won't be a clickable valid url in the UI on the users profile page.
 To solve this we brought in [normalize-url](https://www.npmjs.com/package/normalize-url) to well.. normalize the url.
 
 Regardless of what the user enters it will ammend the url accordingly to make it valid (assuming the site exists).
-You can see the use here in [routes/api/profile.js](https://github.com/bradtraversy/devconnector_2.0/blob/31e5318592b886add58923c751dba73274c711de/routes/api/profile.js#L71)
-
 ## Fix broken links in gravatar 🔗
 
 There is an unresolved [issue](https://github.com/emerleite/node-gravatar/issues/47) with the [node-gravatar](https://github.com/emerleite/node-gravatar#readme) package, whereby the url is not valid. Fortunately we added normalize-url so we can use that to easily fix the issue. If you're not seeing Gravatar avatars showing in your app then most likely you need to implement this change.
-You can see the code use here in [routes/api/users.js](https://github.com/bradtraversy/devconnector_2.0/blob/master/routes/api/users.js#L44)
 
 ## Redux subscription to manage local storage 📥
 
@@ -143,20 +118,6 @@ We can use this listener to **_watch_** our store and set our auth token in loca
 - if there is a token - store it in local storage and set the headers.
 - if there is no token - token is null - remove it from storage and delete the headers.
 
-The subscription can be seen in [client/src/store.js](https://github.com/bradtraversy/devconnector_2.0/blob/master/client/src/store.js)
-
-We also need to change our [client/src/utils/setAuthToken.js](https://github.com/bradtraversy/devconnector_2.0/blob/master/client/src/utils/setAuthToken.js) so it now handles both the setting of the token in local storage and in axios headers.
-`setauthToken.js` in turn depends on [client/src/utils/api.js](https://github.com/bradtraversy/devconnector_2.0/blob/master/client/src/utils/api.js) where we create an instance of axios. So you will also need to grab that file.
-
-With those two changes in place we can remove all setting of local storage from [client/src/reducers/auth.js](https://github.com/bradtraversy/devconnector_2.0/blob/master/client/src/reducers/auth.js). And remove setting of the token in axios headers from [client/src/actions/auth.js](https://github.com/bradtraversy/devconnector_2.0/blob/master/client/src/actions/auth.js). This helps keep our code predictable, manageable and ultimately bug free.
-
-## Component reuse ♻️
-
-The EditProfile and CreateProfile have been reduced to one component [ProfileForm.js](https://github.com/bradtraversy/devconnector_2.0/blob/master/client/src/components/profile-forms/ProfileForm.js)  
-The majority of this logic came from the refactrored EditProfile Component, which was initially changed to fix the issues with the use of useEffect we see in this component.
-
-If you want to address the linter warnings in EditProfile then this is the component you are looking for.
-
 ## Log user out on token expiration 🔐
 
 If the Json Web Token expires then it should log the user out and end the authentication of their session.
@@ -165,14 +126,6 @@ We can do this using a [axios interceptor](https://github.com/axios/axios#interc
 The interceptor, well... intercepts any response and checks the response from our api for a `401` status in the response.  
 ie. the token has now expired and is no longer valid, or no valid token was sent.  
 If such a status exists then we log out the user and clear the profile from redux state.
-
-**You can see the implementation of the interceptor and axios instance in [utils/api.js](https://github.com/bradtraversy/devconnector_2.0/blob/master/client/src/utils/api.js)**
-
-Creating an instance of axios also cleans up our action creators in [actions/auth.js](https://github.com/bradtraversy/devconnector_2.0/blob/master/client/src/actions/auth.js), [actions/profile.js](https://github.com/bradtraversy/devconnector_2.0/blob/master/client/src/actions/profile.js) and [actions/post.js](https://github.com/bradtraversy/devconnector_2.0/blob/master/client/src/actions/post.js)
-
-Note that implementing this change also requires that you use the updated code in [utils/setAuthToken.js](https://github.com/bradtraversy/devconnector_2.0/blob/master/client/src/utils/setAuthToken.js)
-Which also in turn depends on [utils/api.js](https://github.com/bradtraversy/devconnector_2.0/blob/master/client/src/utils/api.js)
-I would also recommending updating to use a [ redux subscription ](https://github.com/bradtraversy/devconnector_2.0#redux-subscription-to-manage-local-storage-) to mange setting of the auth token in headers and local storage.
 
 ## Remove Moment 🗑️
 
@@ -186,7 +139,6 @@ The maintainers of Moment.js now recommend finding an alternative to their packa
 
 Some of you in the course have been having problems installing both packages and meeting peer dependencies.\
  We can instead use the browsers built in [Intl](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl) API.\
- First create a [ utils/formatDate.js ](https://github.com/bradtraversy/devconnector_2.0/blob/master/client/src/utils/formatDate.js) file, with the following code...
 
 ```javascript
 function formatDate(date) {
@@ -195,8 +147,6 @@ function formatDate(date) {
 
 export default formatDate;
 ```
-
-Then in our [Education.js](https://github.com/bradtraversy/devconnector_2.0/blob/master/client/src/components/dashboard/Education.js) component, import the new function...
 
 ```javascript
 import formatDate from '../../utils/formatDate';
@@ -209,18 +159,6 @@ And use it instead of Moment...
   {formatDate(edu.from)} - {edu.to ? formatDate(edu.to) : 'Now'}
 </td>
 ```
-
-So wherever you use `<Moment />` you can change to use the `formatDate` function.\
-Files to change would be...
-
-- [Education.js](https://github.com/bradtraversy/devconnector_2.0/blob/master/client/src/components/dashboard/Education.js)
-- [Experience.js](https://github.com/bradtraversy/devconnector_2.0/blob/master/client/src/components/dashboard/Experience.js)
-- [CommentItem.js](https://github.com/bradtraversy/devconnector_2.0/blob/master/client/src/components/post/CommentItem.js)
-- [PostItem.js](https://github.com/bradtraversy/devconnector_2.0/blob/master/client/src/components/posts/PostItem.js)
-- [ProfileEducation.js](https://github.com/bradtraversy/devconnector_2.0/blob/master/client/src/components/profile/ProfileEducation.js)
-- [ProfileExperience.js](https://github.com/bradtraversy/devconnector_2.0/blob/master/client/src/components/profile/ProfileExperience.js)
-
-If you're updating your project you will now be able to uninstall **react-moment** and **moment** as project dependencies.
 
 ## React Router V6 🧭
 
@@ -255,14 +193,6 @@ To solve this each page component in App.js (any child of a `<Route />`) gets
 wrapped in it's own `<section className="container">`, So we no longer need that
 in App.js. In most cases this just replaces the outer `<Fragment />` in the
 component.
-
-The styling also affected the [ `<Alert />`
-](client/src/components/layout/Alert.js) component as this will show in
-addition to other page components adding it's own `<section>` would mean extra
-content shift when the alerts show. To solve this the alerts have been given
-their [ own styling ](https://github.com/bradtraversy/devconnector_2.0/blob/c5b1fc48ccfecf30b6ed85f228a337f82d93e3f9/client/src/App.css#L579) so they are `position: fixed;` and we get no content shift,
-which additionally makes for a smoother UI with the alerts popping up in the top
-right of the screen.
 
 ---
 
@@ -382,21 +312,6 @@ Make any changes you need on your main branch and merge those into your producti
 git checkout production
 git merge main
 ```
-
-Once merged you can push to heroku as above and your site will rebuild and be updated.
-
----
-
-## App Info
-
-### Author
-
-Brad Traversy
-[Traversy Media](http://www.traversymedia.com)
-
-### Version
-
-2.0.0
 
 ### License
 
